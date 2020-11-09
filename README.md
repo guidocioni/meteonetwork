@@ -1,4 +1,4 @@
-# meteonetwork webapp
+# meteonetwork
 Few scripts and utilities to download and process data from Meteonetwork weather stations (http://www.meteonetwork.it/rete/). 
 
 ![Sample plotting output](https://i.imgur.com/ZxP4C6j.png)
@@ -8,8 +8,8 @@ Note that you need an account and an api-key to perform the api query (see https
 The `utils.py` file contains most of the routines needed to filter and plot the values. 
 The `api.py` file contains the `MNWApi` class needed to download the data from meteonetwork REST server. 
 
-The two scripts `plot_live` and `plot_daily` parse arguments from the shell. Try to call `python plot_live.py --help` for help. 
+The two scripts `plot_live` and `plot_daily` parse arguments from the shell. Try to call `python plot_live.py --help` for help.
 
-
+An example to do automated post processing is included in `copy_data.run.sh`
 
 
