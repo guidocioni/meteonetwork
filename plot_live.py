@@ -20,7 +20,10 @@ def main(plot_type='temperature', plot_filename='output.png', projection='italy'
         import matplotlib
         matplotlib.use("agg")
 
-    data = mnw.get_realtime_stations(country='IT')
+    if projection == 'italy':
+        data = mnw.get_realtime_stations(country='IT')
+    else:
+        data = mnw.get_realtime_stations()
 
     lats = data['latitude'].values
     lons = data['longitude'].values
@@ -32,6 +35,15 @@ def main(plot_type='temperature', plot_filename='output.png', projection='italy'
         temperature = data['temperature'].values
         temperature_sparse = utils.filter_values(temperature, lats, lons)
         plot_temperature(projection, temperature_sparse,
+                         temperature, lons, lats, data['observation_time_local'], plot_filename)
+    elif plot_type == 'sat':
+        temperature = data['temperature'].values
+        if projection == 'italy':
+            temperature_sparse = utils.filter_values(temperature, lats, lons, num_bins=20)
+        else:
+            temperature_sparse = utils.filter_values(temperature, lats, lons, num_bins=50)
+
+        plot_sat_temp(projection, temperature_sparse,
                          temperature, lons, lats, data['observation_time_local'], plot_filename)
     elif plot_type == 'rain':
         precipitation = data['daily_rain'].values
@@ -74,7 +86,7 @@ def plot_temperature(projection, temp_sparse, temp,
                      lons, lats, date, plot_filename):
     import matplotlib.pyplot as plt
     '''Plot temperature on the map'''
-    fig = plt.figure(1, figsize=(10, 10))
+    fig = plt.figure(1, figsize=(12, 12))
 
     ax = utils.get_projection(plt, projection, regions=False)
 
@@ -93,11 +105,45 @@ def plot_temperature(projection, temp_sparse, temp,
     plt.clf()
 
 
+def plot_sat_temp(projection, temp_sparse, temp,
+                     lons, lats, date, plot_filename):
+    import matplotlib.pyplot as plt
+    '''Plot temperature on the map'''
+    fig = plt.figure(1, figsize=(12, 12))
+
+    if projection == 'italy':
+        ax = utils.get_projection(plt, projection, regions=True,
+                                  sat=True, background=False,
+                                  coastlines=True)
+    else:
+        ax = utils.get_projection(plt, projection, regions=False,
+                                  sat=True, background=False,
+                                  coastlines=True)
+
+    utils.add_vals_on_map(ax=ax, projection=projection,
+                          var=temp_sparse, lons=lons, lats=lats)
+
+    plt.title('Temperature live | Ultimo aggiornamento %s' % date[0])
+
+    utils.add_logo_on_map(
+        ax=ax, logo='meteoindiretta_logo.png', zoom=0.15, pos=(0.92, 0.1))
+    utils.add_logo_on_map(
+        ax=ax, logo='meteonetwork_logo.png', zoom=0.3, pos=(0.15, 0.05))
+
+    if projection == 'italy':
+        utils.add_hist_on_map(ax=ax, var=temp, label='Temperatura [C]')
+    else:
+        utils.add_hist_on_map(ax=ax, var=temp, label='Temperatura [C]', loc=2, width="25%")
+
+    plt.savefig(plot_filename, dpi=100, bbox_inches='tight')
+    plt.clf()
+
+
 def plot_humidity(projection, hum_sparse, hum,
                   lons, lats, date, plot_filename):
     import matplotlib.pyplot as plt
 
-    fig = plt.figure(1, figsize=(10, 10))
+    fig = plt.figure(1, figsize=(12, 12))
     ax = utils.get_projection(plt, projection, regions=False)
 
     utils.add_vals_on_map(ax=ax, var=hum_sparse, projection=projection,
@@ -119,7 +165,7 @@ def plot_rain(projection, rain_sparse, rain,
               lons, lats, date, plot_filename):
     import matplotlib.pyplot as plt
 
-    fig = plt.figure(1, figsize=(10, 10))
+    fig = plt.figure(1, figsize=(12, 12))
     ax = utils.get_projection(plt, projection, regions=False)
 
     utils.add_vals_on_map(ax=ax, var=rain_sparse, projection=projection,
@@ -141,7 +187,7 @@ def plot_gust(projection, gust_sparse, gust, u, v,
               lons, lats, date, plot_filename):
     import matplotlib.pyplot as plt
 
-    fig = plt.figure(1, figsize=(10, 10))
+    fig = plt.figure(1, figsize=(12, 12))
     ax = utils.get_projection(plt, projection, regions=False)
 
     utils.add_vals_on_map(ax=ax, var=gust_sparse, projection=projection,
@@ -166,7 +212,7 @@ def plot_synoptic(projection, u, v, mslp,
                   lons, lats, date, plot_filename):
     import matplotlib.pyplot as plt
 
-    fig = plt.figure(1, figsize=(10, 10))
+    fig = plt.figure(1, figsize=(12, 12))
     ax = utils.get_projection(plt, projection, regions=False)
 
     utils.add_vals_on_map(ax=ax, var=mslp, projection=projection,

@@ -86,7 +86,8 @@ def filter_min_values(var, lats, lons, max_density=1, num_bins=30):
     return(var_sparse)
 
 
-def get_projection(plt, projection='italy', regions=False):
+def get_projection(plt, projection='italy', background=True,
+                   regions=False, borders=True, sat=False, coastlines=False):
     '''Retrieve the projection using cartopy'''
     # Fist check if we have cartopy, otherwise just plot on a background image,
     # which hopefully has the same extents...
@@ -98,13 +99,23 @@ def get_projection(plt, projection='italy', regions=False):
 
         if projection == 'italy':
             ax.set_extent([6, 19, 36, 48], ccrs.PlateCarree())
+        else:
+            ax.set_extent([-18, 40, 30, 70], ccrs.PlateCarree())
 
-        ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='#64B6AC')
-        ax.add_feature(cfeature.LAKES.with_scale('50m'), facecolor='#2081C3')
-        ax.add_feature(cfeature.OCEAN.with_scale('50m'), facecolor='#2081C3')
-        ax.add_feature(cfeature.BORDERS.with_scale('50m'), linestyle='-', alpha=.5,
-                       edgecolor='white', linewidth=2.)
+        if sat:
+            ax.add_wms(wms='https://eumetview.eumetsat.int/geoserver/wms',
+                       layers=["meteosat:msg_eview"])
 
+        if background:
+            ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='#64B6AC')
+            ax.add_feature(cfeature.LAKES.with_scale('50m'), facecolor='#2081C3')
+            ax.add_feature(cfeature.OCEAN.with_scale('50m'), facecolor='#2081C3')
+        if borders:
+            ax.add_feature(cfeature.BORDERS.with_scale('50m'), linestyle='-', alpha=.5,
+                           edgecolor='white', linewidth=1.)
+        if coastlines:
+            ax.coastlines(resolution='10m', linestyle='-', alpha=.5,
+                           color='white', linewidth=1.)
         if regions:
             states_provinces = cfeature.NaturalEarthFeature(
                 category='cultural',
@@ -202,16 +213,47 @@ def add_barbs_on_map(ax, projection, u, v, lons, lats,
     if magnitude:
         norm = mplcolors.Normalize(vmin=minval, vmax=maxval)
         ax.barbs(lons + shift_x, lats + shift_y, u, v, (u**2 + v**2)**(0.5),
-                 zorder=6, length=6, cmap=cmap, norm=norm)
+                 zorder=6, length=4, cmap=cmap, norm=norm)
     else:
         ax.barbs(lons + shift_x, lats + shift_y, u, v, zorder=6, length=6)
 
 
+def wind_degrees_from_direction(wdir, rad=True):
+    '''Get wind direction (in degree) from cardinal direction'''
+    conversion = {
+        'N': 0.0,
+        'NNE': 22.5,
+        'NE': 45.0,
+        'ENE': 67.5,
+        'E': 90.0,
+        'ESE': 112.5,
+        'SE': 135.0,
+        'SSE': 157.5,
+        'S': 180.0,
+        'SSW': -157.5,
+        'SW': -135.0,
+        'WSW': -112.5,
+        'W': -90,
+        'WNW': -67.5,
+        'NW': -45.0,
+        'NNW': -22.5
+    }
+    if wdir:
+        if rad:
+            return np.deg2rad(conversion[wdir])
+        else:
+            return conversion[wdir]
+    else:
+        return None
+
+
 def wind_components(speed, wdir):
     '''Get wind components from speed and direction.'''
-    wdir = np.deg2rad(wdir)
+    func_v = np.vectorize(wind_degrees_from_direction)
+    wdir = func_v(wdir)
     u = -speed * np.sin(wdir)
     v = -speed * np.cos(wdir)
+
     return u, v
 
 
