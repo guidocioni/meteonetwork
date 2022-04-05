@@ -39,7 +39,7 @@ def main(plot_type='temperature', plot_filename='output.png', projection='italy'
     elif plot_type == 'sat':
         temperature = data['temperature'].values
         if projection == 'italy':
-            temperature_sparse = utils.filter_values(temperature, lats, lons, num_bins=20)
+            temperature_sparse = utils.filter_values(temperature, lats, lons, num_bins=25)
         else:
             temperature_sparse = utils.filter_values(temperature, lats, lons, num_bins=50)
 

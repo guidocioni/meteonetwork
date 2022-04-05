@@ -103,8 +103,8 @@ def get_projection(plt, projection='italy', background=True,
             ax.set_extent([-18, 40, 30, 70], ccrs.PlateCarree())
 
         if sat:
-            ax.add_wms(wms='https://eumetview.eumetsat.int/geoserver/wms',
-                       layers=["meteosat:msg_eview"])
+            ax.add_wms(wms='https://view.eumetsat.int/geoserver/wms',
+                       layers=["msg_fes:rgb_eview"])
 
         if background:
             ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='#64B6AC')
